@@ -73,35 +73,23 @@ ner_driver = CkipNerChunker(model="bert-base")
 # Use GPU:0
 ws_driver = CkipWordSegmenter(device=0)
 
-ws  = ws_driver(text, use_delim=True)
-ner = ner_driver(text, use_delim=True)
-pos = pos_driver(ws, delim_set='\n\t')
-
-def pack_ws_pos_sentece(sentence_ws, sentence_pos):
-   assert len(sentence_ws) == len(sentence_pos)
-   res = []
-   for word_ws, word_pos in zip(sentence_ws, sentence_pos):
-      res.append(f"{word_ws}({word_pos})")
-   return "\u3000".join(res)
 
 
 from flask import Flask, render_template, request
-
-app = Flask(__name__,template_folder="templates")
-@app.route('/')
-def index():
-    return render_template('index.html')
+# app = Flask(__name__,template_folder="templates")
+app = Flask(__name__)
+# @app.route('/')
+# def index():
+#     return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    if not file_data:
-        return '請上傳excel檔文件'
-    
+        
     file_data = request.files['file']
     filename = file_data.filename
     if filename == '':
         return '未上傳檔案，或檔案格式不符'
-    
+        
     # 這行將文件轉為流，在xlrd中打開
     # f = file_data.read()
     # excel_file = xlrd.open_workbook(file_contents=f)
@@ -111,15 +99,33 @@ def upload():
     for i in range(len(df)):
         text.append(df["Content"].iloc[i])
 
+    ws  = ws_driver(text, use_delim=True)
+    ner = ner_driver(text, use_delim=True)
+    pos = pos_driver(ws, delim_set='\n\t')
+    
+
+    def pack_ws_pos_sentece(sentence_ws, sentence_pos):
+        assert len(sentence_ws) == len(sentence_pos)
+        res = []
+        for word_ws, word_pos in zip(sentence_ws, sentence_pos):
+            res.append(f"{word_ws}({word_pos})")
+        return "\u3000".join(res)
+
     pos_ch = []
+    out_sentence_pos = []
     for sentence, sentence_ws, sentence_pos, sentence_ner in zip(text, ws, pos, ner):
-        print(sentence)
+        # print(sentence)
+        out_sentence_pos.append(sentence)
         for i in range(len(sentence_pos)):
             pos_ch.append(pos_EtoC[sentence_pos[i]])
-        print(pack_ws_pos_sentece(sentence_ws, pos_ch))
-        print()
+        # print(pack_ws_pos_sentece(sentence_ws, pos_ch))
+        # print()
+        pos = pack_ws_pos_sentece(sentence_ws, pos_ch)
+        out_sentence_pos.append(pos)
+        out_sentence_pos.append('\n')
         pos_ch.clear()
     
-    return render_template("front.html")
+    return out_sentence_pos
 
-app.run()
+
+# app.run()
