@@ -86,6 +86,7 @@ app = Flask(__name__)
 def upload():
         
     file_data = request.files['file']
+    
     filename = file_data.filename
     if filename == '':
         return '未上傳檔案，或檔案格式不符'
@@ -125,7 +126,7 @@ def upload():
         out_sentence_pos.append('\n')
         pos_ch.clear()
     
-    return out_sentence_pos
+    return '\n'.join(out_sentence_pos)
 
 
 # app.run()
