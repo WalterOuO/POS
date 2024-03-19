@@ -1,6 +1,8 @@
 # import xlrd  #可替換為pandas
+import os
 import pandas as pd
 from ckip_transformers.nlp import CkipWordSegmenter, CkipPosTagger, CkipNerChunker
+import logging
 
 pos_EtoC = {
         "A":"非謂形容詞",
@@ -74,8 +76,7 @@ ner_driver = CkipNerChunker(model="bert-base")
 ws_driver = CkipWordSegmenter(device=0)
 
 
-
-from flask import Flask, render_template, request
+from flask import Flask, request
 # app = Flask(__name__,template_folder="templates")
 app = Flask(__name__)
 # @app.route('/')
@@ -84,17 +85,22 @@ app = Flask(__name__)
 
 @app.route('/upload', methods=['POST'])
 def upload():
-        
+
     file_data = request.files['file']
-    filename = file_data.filename
-    if filename == '':
+
+    logging.debug('File received:', file_data.filename)
+    # filename = file_data.filename
+    # file.save(os.path.join(FILE_DIR,filename))
+    if not file_data:
+        logging.error('No file data received')
         return '未上傳檔案，或檔案格式不符'
+    
         
     # 這行將文件轉為流，在xlrd中打開
     # f = file_data.read()
     # excel_file = xlrd.open_workbook(file_contents=f)
 
-    df = pd.read_excel(filename, usecols=["Content"])
+    df = pd.read_excel(file_data, usecols=["Content"])
     text = []
     for i in range(len(df)):
         text.append(df["Content"].iloc[i])
@@ -125,7 +131,7 @@ def upload():
         out_sentence_pos.append('\n')
         pos_ch.clear()
     
-    return out_sentence_pos
+    return '\n'.join(out_sentence_pos)
 
-
-# app.run()
+if __name__ == '__main__':
+    app.run(debug=True)

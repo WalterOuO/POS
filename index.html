@@ -6,8 +6,8 @@
     <title>Excel Upload</title>
 </head>
 <body>
-    <h1>Upload Excel File</h1>
-    <h2>Haaaaaaaa Eric 詹宏傑 AAA</h2>
+    <h1>CKIP詞性判斷系統</h1>
+    <h2>請上傳逐字稿excel檔</h2>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" id="file">
         <button type="submit">Upload</button>
@@ -21,18 +21,36 @@
 
             var formData = new FormData();
             formData.append('file', document.getElementById('file').files[0]);
-
+            
+            console.log('Submitting form data:', formData);
+            // fetch('/upload', {
+            //     method: 'POST',
+            //     body: formData
+            // })
+            // .then(response => response.text())
+            // .then(data => {
+            //     document.getElementById('result').innerText = data;
+            // })
+            // .catch(error => {
+            //     console.error('Error:', error);
+            // });
             fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('result').innerText = data;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response received:', response);
+                    return response.text();
+                })
+                // .then(response => response.text())
+                .then(data => {
+                    console.log('Data received:', data);
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.textContent = data; // 將服務器返回的字串列表放入結果區域
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         });
     </script>
 </body>
